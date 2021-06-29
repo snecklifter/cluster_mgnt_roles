@@ -1,0 +1,104 @@
+[all:vars]
+
+###############################################################################
+# Required configuration variables for Assisted Install Installations         #
+###############################################################################
+
+# Name of the cluster, i.e. openshift
+cluster_name="ldc-griffintown"
+
+# Base DNS domain
+base_dns_domain="rdc-mtl.ran.lan"
+
+# Available subnets *
+# 10.198.6.0/24 (10.198.6.1-10.198.6.254)
+machine_network_cidr= "10.198.6.0/24"
+
+# Allocate virtual IPs via DHCP server
+vip_dhcp_allocation=False
+
+# API virtual IP
+api_vip="10.198.6.155"
+
+# Ingress virtual IP
+ingress_vip="10.198.6.156"
+
+# Cluster network CIDR
+cluster_network_cidr="10.128.0.0/14"
+
+# Cluster network host prefix
+cluster_network_host_prefix=23
+
+# Service network CIDR
+service_network_cidr="172.30.0.0/16"
+
+ntp_server="clock.redhat.com"
+
+#Host SSH Public Key for troubleshooting after installation
+# Use the same host discovery SSH key
+ssh_public_key="{{ lookup('file', './ssh_public_key.txt') }}"
+
+# Load pull-secret file
+pull_secret="{{ lookup('file', './pull_secret.txt') }}"
+
+# Load cluster file, this is generated automatically
+cluster_id="{{ lookup('file', './cluster.txt') }}"
+
+# Version of the openshift-installer, undefined or empty results in the playbook failing.
+openshift_version="4.6"
+
+# Discovery ISO
+discovery_iso_name="discovery_image_ldc-griffintown.iso"
+# HTTP server where the ISO is stored
+discovery_iso_server="http://10.198.6.70:8080"
+
+# Parameters for a Restricted Network installation
+use_mirror= False
+mirror_certificate="{{ lookup('file', './mirror_certificate.txt') }}"
+mirror_registry=infra.ldc-griffintown.rdc-mtl.ran.lan:5000
+
+[services]
+assisted_installer host=10.198.6.70 port=8090
+http_store host=10.198.6.70 port=8080
+
+[bastions]
+#home ansible_ssh_user=root ansible_ssh_host=192.168.20.20
+bastion ansible_ssh_user=root ansible_ssh_host=10.198.6.70
+#supermicro-infra ansible_ssh_user=ran ansible_ssh_host=172.24.118.250
+#rhpool-infra ansible_ssh_user=root ansible_ssh_host=10.1.196.40
+
+# 3 masters nodes are mandatory, workers nodes are optional
+# each node must be identify with an unique name and the following paratmers
+# role, mac, ip, bmc_address, bmc_user, bmc_password are mandatory parameters
+# vendor parameter is mandatory, options include: Dell, HPE, SuperMicro, Lenovo, KVM
+# ip, mask, gateway, dns are mandatory parameters for static IP, othewise use ip=dhcp
+
+# Master nodes
+[masters]
+master0-ldc-griffintown bmc_address=10.198.6.63:8000 mac=3c:fd:fe:78:ab:00 ip=10.198.6.30
+master1-ldc-griffintown bmc_address=10.198.6.63:8000 mac=3c:fd:fe:78:ab:01 ip=10.198.6.31
+master2-ldc-griffintown bmc_address=10.198.6.63:8000 mac=3c:fd:fe:78:ab:02 ip=10.198.6.32
+
+[masters:vars]
+role=master
+vendor=KVM
+bmc_user=USERID
+bmc_password=PASSW0RD
+mask=24
+gateway=10.198.6.1
+dns=1.1.1.1
+
+# Worker nodes
+[workers]
+server64 bmc_address=10.198.0.64 mac=3c:fd:fe:b4:d1:3c ip=10.198.6.64
+server65 bmc_address=10.198.0.65 mac=3c:fd:fe:d4:e6:00 ip=10.198.6.65
+server66 bmc_address=10.198.0.66 mac=3c:fd:fe:b4:d3:e4 ip=10.198.6.66
+
+[workers:vars]
+role=worker 
+vendor=Lenovo
+bmc_user=USERID
+bmc_password=PASSW0RD
+mask=24
+gateway=10.198.6.1
+dns=1.1.1.1

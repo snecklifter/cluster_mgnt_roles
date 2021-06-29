@@ -9,3 +9,10 @@ package_list:
   - ipmitool
   - make
   - git
+ASSISTED_INSTALLER_HOST: "{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) }}"
+assisted_installer_images:
+  release:
+    image: "quay.io/openshift-release-dev/ocp-release@{{ image_hashes.release }}"
+
+  controller:
+    image: "quay.io/ocpmetal/assisted-installer-controller@{{ image_hashes.controller }}"

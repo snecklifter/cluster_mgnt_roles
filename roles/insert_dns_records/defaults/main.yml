@@ -1,0 +1,16 @@
+write_dnsmasq_config: true
+dns_entries_file_name: domains.dns
+dns_service_name: NetworkManager
+dns_records:
+  apps:
+    address: "*.apps.{{ domain }}"
+    ip: "{{ ingress_vip }}"
+  api:
+    address: "api.{{ domain }}"
+    ip: "{{ api_vip }}"
+  api_int:
+    address: "api-int.{{ domain }}"
+    ip: "{{ api_vip }}"
+
+node_dns_records: {}
+extra_dns_records: {}

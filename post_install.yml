@@ -1,0 +1,24 @@
+---
+- name: Get kubeconfig
+  hosts: bastion
+  vars:
+    secure: false
+    ASSISTED_INSTALLER_HOST: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
+    ASSISTED_INSTALLER_PORT: 8090
+    ASSISTED_INSTALLER_BASE_URL: "{{ secure | ternary('https', 'http') }}://{{ ASSISTED_INSTALLER_HOST }}:{{ ASSISTED_INSTALLER_PORT }}/api/assisted-install/v1"
+    URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}"
+    kubeconfig_path: "{{ kubeconfig_dest_dir | default(ansible_env.HOME) }}/kubeconfig"
+  tasks:
+    - name: Download kubeconfig
+      get_url:
+        url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/kubeconfig"
+        dest: "{{ kubeconfig_path }}"
+        mode: '0774'
+
+    - name: Check kubectl
+      shell:
+        cmd: "kubectl --kubeconfig {{ kubeconfig_path }} explain pods"
+
+    - name: Check cluster
+      shell:
+        cmd: "oc --kubeconfig {{ kubeconfig_path }} get co"

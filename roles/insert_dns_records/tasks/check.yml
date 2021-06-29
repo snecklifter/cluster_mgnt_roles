@@ -1,0 +1,4 @@
+- name: Check for domain
+  ansible.builtin.fail:
+    msg: "domain not set or is empty"
+  when: (domain is not defined) or (domain == "")

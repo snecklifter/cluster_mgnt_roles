@@ -1,0 +1,4 @@
+required_domains:
+  - "{{ 'api.' + domain }}"
+  - "{{ 'api-int.' + domain }}"
+  - "{{ '*.apps.' + domain }}"

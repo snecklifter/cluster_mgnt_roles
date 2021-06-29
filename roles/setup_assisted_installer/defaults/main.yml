@@ -1,0 +1,48 @@
+coreos_installer_image: "quay.io/coreos/coreos-installer:{{ coreos_installer_tag | default('v0.7.0') }}"
+assisted_service_image: "quay.io/ocpmetal/assisted-service:{{ assisted_service_tag | default('v1.0.18.3') }}"
+assisted_service_gui_image: "quay.io/ocpmetal/ocp-metal-ui:{{ assisted_service_gui_tag | default('v1.0.18.3') }}"
+assisted_postgres_image: quay.io/ocpmetal/postgresql-12-centos7
+
+assisted_service_openshift_versions:
+  '4.6':
+    display_name: 4.6.16
+    release_image: quay.io/openshift-release-dev/ocp-release:4.6.16-x86_64
+    release_version: 4.6.16
+    rhcos_image: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.6/4.6.8/rhcos-4.6.8-x86_64-live.x86_64.iso
+    rhcos_rootfs: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.6/4.6.8/rhcos-live-rootfs.x86_64.img
+    rhcos_version: 46.82.202012051820-0
+    support_level: production
+  '4.7':
+    default: true
+    display_name: 4.7.9
+    release_image: quay.io/openshift-release-dev/ocp-release:4.7.9-x86_64
+    release_version: 4.7.9
+    rhcos_image: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.7/4.7.7/rhcos-4.7.7-x86_64-live.x86_64.iso
+    rhcos_rootfs: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.7/4.7.7/rhcos-live-rootfs.x86_64.img
+    rhcos_version: 47.83.202103251640-0
+    support_level: production
+  '4.8':
+    display_name: 4.8.0-fc.3
+    release_image: quay.io/openshift-release-dev/ocp-release:4.8.0-fc.3-x86_64
+    release_version: 4.8.0-fc.3
+    rhcos_image: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/pre-release/4.8.0-fc.3/rhcos-4.8.0-fc.3-x86_64-live.x86_64.iso
+    rhcos_rootfs: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/pre-release/4.8.0-fc.3/rhcos-live-rootfs.x86_64.img
+    rhcos_version: 48.84.202105062123-0
+    support_level: beta
+
+assisted_installer_images:
+  release:
+    image: "quay.io/openshift-release-dev/ocp-release@{{ image_hashes.release }}"
+  controller:
+    image: "quay.io/ocpmetal/assisted-installer-controller@{{ image_hashes.controller }}"
+  installer_agent:
+    image: "quay.io/ocpmetal/assisted-installer-agent@{{ image_hashes.installer_agent }}"
+  installer:
+    image: "quay.io/ocpmetal/assisted-installer@{{ image_hashes.installer }}"
+
+rhcos_image: "{{ assisted_service_openshift_versions[openshift_version]['rhcos_image'] }}"
+assisted_installer_image: "{{ assisted_installer_images.installer.image }}"
+assisted_installer_agent_image: "{{ assisted_installer_images.installer_agent.image }}"
+assisted_installer_controller_image: "{{ assisted_installer_images.controller.image }}"
+
+assisted_installer_dir: /opt/assisted-installer

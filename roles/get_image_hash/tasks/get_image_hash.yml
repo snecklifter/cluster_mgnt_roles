@@ -1,0 +1,8 @@
+
+- name: "Get {{ item.key }} image hash"
+  shell: "skopeo inspect docker://{{ item.value.image }}:{{ item.value.tag }} | jq .Digest"
+  register: result
+
+- name: Update hashes
+  set_fact:
+    image_hashes: "{{ image_hashes | default({}) | combine({item.key: result.stdout.strip('\"')}) }}"

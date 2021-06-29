@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  connection: local
+  strategy: free
+  become: false
+  roles:
+    - prereq_facts_check
+

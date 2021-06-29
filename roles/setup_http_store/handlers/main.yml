@@ -1,0 +1,17 @@
+- name: Reload systemd service
+  systemd:
+    daemon_reexec: yes
+    scope: system
+
+- name: Enable http_store.service
+  systemd:
+    name: http_store
+    enabled: yes
+    scope: system
+  listen: Reload systemd service
+
+- name: Start http_store.service
+  systemd:
+    name: http_store
+    state: started
+    scope: system

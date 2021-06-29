@@ -1,0 +1,115 @@
+---
+- name: Check facts
+  hosts: localhost
+  roles:
+    - prereq_facts_check
+  vars:
+     # This will be made later in the play so no need to check it here.
+     # This check is there to support playbooks which do not create
+     # the cert as part of there execution
+     mirror_certificate_check: false
+     mirror_certificate: ""
+
+- name: Play to populate image_hashes for relevant images
+  hosts: localhost
+  vars:
+    images_to_get_hash_for:
+      release:
+        image: quay.io/openshift-release-dev/ocp-release
+        tag: "{{ release_tag | default(openshift_full_version + '-x86_64') }}"
+      controller:
+        image: quay.io/ocpmetal/assisted-installer-controller
+        tag: "{{ controller_tag | default('latest') }}"
+      installer_agent:
+        image: quay.io/ocpmetal/assisted-installer-agent
+        tag: "{{ installer_agent_tag | default('latest') }}"
+      installer:
+        image: quay.io/ocpmetal/assisted-installer
+        tag: "{{ installer_tag | default('latest') }}"
+  roles:
+    - get_image_hash
+  post_tasks:
+    - name: Set image hashes in registry_host
+      set_fact:
+        image_hashes: "{{ image_hashes }}"
+      delegate_to: registry_host
+      delegate_facts: true
+
+    - name: Set image hashes in registry_host
+      set_fact:
+        image_hashes: "{{ image_hashes }}"
+      delegate_to: assisted_installer
+      delegate_facts: true
+
+
+- name: Generate ssh keys used for debug
+  hosts: bastion
+  roles:
+    - generate_ssh_key_pair
+
+- name: Setup NTP
+  hosts: ntp_host
+  vars:
+    SETUP_NTP_SERVICE: "{{setup_ntp_service | default(True)}}"
+  roles:
+    - role: setup_ntp
+      when: SETUP_NTP_SERVICE == True
+
+- name: Play to install and setup mirror registry
+  hosts: registry_host
+  vars:
+    downloads_path: /tmp/wip
+    config_file_path: /tmp/wip/config
+    SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(true)}}"
+  roles:
+    - role: setup_selfsigned_cert
+      when: SETUP_REGISTRY_SERVICE == True
+    - role: setup_mirror_registry
+      when: SETUP_REGISTRY_SERVICE == True
+  collections:
+    - containers.podman
+    - community.crypto
+    - community.general
+    - ansible.posix
+
+- name: Setup HTTP Store
+  hosts: http_store
+  vars:
+    SETUP_HTTP_STORE_SERVICE: "{{ setup_http_store_service | default(true) }}"
+  roles:
+    - role: setup_http_store
+      when: SETUP_HTTP_STORE_SERVICE == True
+    - role: validate_http_store
+
+- name: Setup DNS Records
+  hosts: dns_host
+  vars:
+    domain: "{{ cluster_name + '.' + base_dns_domain }}"
+    dns_entries_file_name: "{{ 'dnsmasq.' + cluster_name + '.conf' }}"
+    host_ip_keyword: "ansible_host"
+    SETUP_DNS_SERVICE: "{{ setup_dns_service| default(True) }}"
+  roles:
+    - role: insert_dns_records
+      when: SETUP_DNS_SERVICE == True
+    - role: validate_dns_records
+
+- name: Deploy OpenShift Assisted Installer On Prem
+  hosts: assisted_installer
+  roles:
+    - role: setup_assisted_installer
+      when: SETUP_ASSISTED_INSTALLER == True
+  vars:
+    PULL_SECRET: "{{ pull_secret }}"
+    SETUP_ASSISTED_INSTALLER: "{{ setup_assisted_installer | default(True) }}"
+  post_tasks:
+    - name: Wait for 10 min until the assisted installer comes online
+      uri:
+        url: "http://{{ ansible_host }}:8090/api/assisted-install/v1/clusters"
+        method: GET
+        status_code: [200, 201]
+      register: result
+      until: result is succeeded
+      retries: 20
+      delay: 30
+      delegate_to: bastion
+      when: SETUP_ASSISTED_INSTALLER == True

@@ -1,0 +1,6 @@
+- name: Check required domain {item} exists
+  shell:
+    cmd: "dig {{ item }} +short"
+  register: res
+  failed_when: res.stdout | ipaddr is false
+  loop: "{{ required_domains }}"

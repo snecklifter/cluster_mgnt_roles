@@ -1,0 +1,44 @@
+---
+- name: Check for vars
+  import_tasks:
+    file: check.yml
+
+- name: Get node_records for masters and workers
+  set_fact:
+    node_dns_records: "{{ node_dns_records | default({})| combine(
+          {
+            item: {
+              'address': item + '.' + cluster_name + '.' + base_dns_domain,
+              'ip': hostvars[item][host_ip_keyword],
+              'mac': hostvars[item]['mac'] | default(False),
+              'use_dhcp': hostvars[item]['ip'] | default('dhcp') == 'dhcp',
+            }
+          }
+        )}}"
+  loop: "{{ groups['masters'] + groups['workers'] | default([]) }}"
+  when: hostvars[item][host_ip_keyword] is defined
+
+- name: Setup DNS
+  block:
+    - name: Configure dnsmasq via NetworkManager
+      import_tasks:
+        file: network-manager.yml
+      when: dns_service_name == "NetworkManager"
+
+    - name: Configure dnsmasq via dnsmasq
+      import_tasks:
+        file: dnsmasq.yml
+      when: dns_service_name == "dnsmasq"
+
+    - name: Open port in firewall
+      ansible.posix.firewalld:
+        port: "53/udp"
+        permanent: yes
+        immediate: yes
+        state: enabled
+        zone: "{{ item }}"
+      loop:
+        - internal
+        - public
+  become: true
+

@@ -38,7 +38,7 @@
   set_fact:
     host_name: "{{ item.0 }}"
     host_role: "{{ hostvars[item.0]['role'] }}"
-  when: hostvars[item.0]['mac'] is defined and hostvars[item.0]['mac'] == item.1.mac_address
+  when: hostvars[item.0]['mac'] is defined and ( hostvars[item.0]['mac'] | upper ) == ( item.1.mac_address | upper )
   loop: "{{ inventory_nodes | product(host_interfaces) | list }}"
   no_log: True
 

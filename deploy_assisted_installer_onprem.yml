@@ -1,0 +1,45 @@
+---
+- name: Play to populate image_hashes for relevant images
+  hosts: localhost
+  vars:
+    images_to_get_hash_for:
+      release:
+        image: quay.io/openshift-release-dev/ocp-release
+        tag: "{{ release_tag | default(openshift_full_version + '-x86_64') }}"
+      controller:
+        image: quay.io/ocpmetal/assisted-installer-controller
+        tag: "{{ controller_tag | default('latest') }}"
+      installer_agent:
+        image: quay.io/ocpmetal/assisted-installer-agent
+        tag: "{{ installer_agent_tag | default('latest') }}"
+      installer:
+        image: quay.io/ocpmetal/assisted-installer
+        tag: "{{ installer_tag | default('latest') }}"
+  roles:
+    - get_image_hash
+  post_tasks:
+    - name: Set image hashes in registry_host
+      set_fact:
+        image_hashes: "{{ image_hashes }}"
+      delegate_to: assisted_installer
+      delegate_facts: true
+
+- name: Deploy OpenShift Assisted Installer On Prem
+  hosts: assisted_installer
+  roles:
+    - setup_assisted_installer
+  vars:
+    PULL_SECRET: "{{ pull_secret }}"
+    SETUP_ASSISTED_INSTALLER: "{{ setup_assisted_installer | default(True) }}"
+  post_tasks:
+    - name: Wait for 10 min until the assisted installer comes online
+      uri:
+        url: "http://{{ ansible_host }}:8090/api/assisted-install/v1/clusters"
+        method: GET
+        status_code: [200, 201]
+      register: result
+      until: result is succeeded
+      retries: 20
+      delay: 30
+      delegate_to: bastion
+      when: SETUP_ASSISTED_INSTALLER == True

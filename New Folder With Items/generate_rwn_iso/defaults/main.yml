@@ -1,0 +1,29 @@
+---
+# defaults file for generate_rwn_iso
+
+generate: True
+download: True
+secure: False
+debug: False
+
+ASSISTED_INSTALLER_HOST: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
+ASSISTED_INSTALLER_PORT: 8090
+ASSISTED_INSTALLER_BASE_URL: "{{ secure | ternary('https', 'http') }}://{{ ASSISTED_INSTALLER_HOST }}:{{ ASSISTED_INSTALLER_PORT }}/api/assisted-install/v1"
+URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}"
+URL_ASSISTED_INSTALLER_CLUSTER_DOWNLOAD_FILES: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}/downloads/files"
+
+HTTP_STORE_HOST: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
+HTTP_STORE_PORT: 8888
+URL_HTTP_STORE_BASE_URL: "{{ secure | ternary('https', 'http') }}://{{ HTTP_STORE_HOST }}:{{ HTTP_STORE_PORT }}"
+URL_HTTP_STORE_UPLOAD_IMAGE: "{{ URL_HTTP_STORE_BASE_URL }}"
+
+HTTP_STORE_AUTH_USERNAME: "alice"
+HTTP_STORE_AUTH_PASSWORD: "secret1234"
+
+URL_MIRROR_DOWNLOAD_RHCOS_LIVE_ISO: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-live.x86_64.iso
+DOWNLOAD_DEST_PATH: "/tmp"
+
+SSH_PUBLIC_KEY: ""
+PASSWORD_HASH: "$1$f9F1p5ap$VIFGF2QHttm6xPeGMh/YA/"
+
+WORKER_CONFIG_ROLE: "remote-worker"

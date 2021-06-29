@@ -1,0 +1,5 @@
+key_pair_dir: /tmp/ssh_key_pair
+private_key_name: "{{ cluster_name }}"
+public_key_name: "{{ cluster_name }}.pub"
+dest_dir: "/home/redhat/ssh_keys/"
+fetched_dest: ./fetched

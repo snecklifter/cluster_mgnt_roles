@@ -1,0 +1,30 @@
+---
+- name: Check for pull_secret
+  assert:
+    that:
+      - pull_secret is defined
+      - pull_secret is not false
+      - pull_secret | trim != ''
+    quiet: true
+    msg: "The required 'pull_secret' is not defined or is empty"
+  when: pull_secret_check | bool == True
+
+- name: Check for ssh_public_key
+  assert:
+    that:
+      - ssh_public_key is defined
+      - ssh_public_key is not false
+      - ssh_public_key | trim != ''
+    quiet: true
+    msg: "The required 'ssh_public_key' is not defined or is empty"
+  when: ssh_public_check | bool == True
+
+- name: Check for mirror_certificate
+  assert:
+    that:
+      - mirror_certificate is defined
+      - mirror_certificate is not false
+      - mirror_certificate | trim != ''
+    quiet: true
+    msg: "The required 'mirror_certificate' is not defined or is empty"
+  when: mirror_certificate_check | bool == True

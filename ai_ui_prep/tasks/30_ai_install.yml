@@ -1,37 +1,4 @@
 ---
-#- name: Run a script with arguments (free form)
-#  script:
-#    chdir: /home/kni/assisted_installer/scripts
-#    cmd: hostname
-#  tags:
-#  - install
-
-- name: Run a script using a module
-  shell: |
-    /home/kni/assisted_installer/scripts/install_environment.sh
-  ignore_errors: True
-  tags:
-  - install
-
-#- name: CHeck the hostname
-#  command:
-#    cmd: sh /home/kni/assisted_installer/scripts/install_environment.sh
-#  tags:
-#  - install
-
-# - name: PWD
-#   command: pwd
-#   tags:
-#   - install
-
-#- name: Task to install minikube, services, and UI into your provisioner node
-#  make:
-#    chdir: /home/kni/assisted_installer
-#    target: all
-#    file: create_full_environment
-#  tags:
-#  - install
-
 - name: Copy PullSecret into /home/kni/assisted_installer/pull_secret.txt
   copy:
     content: "{{ PULL_SECRET }}"
@@ -41,27 +8,48 @@
     mode: '0644'
     force: yes
 
-- name: Create full environment via shell command
-  shell: |
-    cd /home/kni/assisted_installer
-    make create_full_environment
+
+- name: Create full environment via make
+  make:
+    chdir: /home/kni/assisted_installer/
+    target: create_full_environment
+  become: true
+  environment:
+    PULL_SECRET:  "{{ PULL_SECRET | to_json }}"
   tags:
   - install
 
 
-- name: Run the environment via shell command
-  shell: |
-    cd /home/kni/assisted_installer
-    make run
+- name: Stop NetworkManager
+  service:
+    name: NetworkManager
+    state: stopped
+  become: true
+  tags:
+  - install
+
+
+- name: Run the environment via make
+  make:
+    chdir: /home/kni/assisted_installer/
+    target: run
   environment:
     PULL_SECRET_FILE:  "/home/kni/assisted_installer/pull_secret.txt"
+    DEPLOY_TARGET: onprem
+    ASSISTED_SERVICE_HOST: "{{ ASSISTED_INSTALLER_HOST }}"
+    PUBLIC_CONTAINER_REGISTRIES: quay.io,registry.access.redhat.com,registry.redhat.io
+    OPENSHIFT_INSTALL_RELEASE_IMAGE: "{{ assisted_installer_images.release.image }}"
+    CONTROLLER_IMAGE: "{{ assisted_installer_images.controller.image }}"
+    SKIP_CERT_VERIFICATION: true
+  become: true
   tags:
   - install
 
-#- name: Task to create a UI for a node
-#  make:
-#    chdir: /home/kni/assisted_installer
-#    target: all
-#    file: run
-#  tags:
-#  - install
+
+- name: Start NetworkManager
+  service:
+    name: NetworkManager
+    state: started
+  become: true
+  tags:
+  - install

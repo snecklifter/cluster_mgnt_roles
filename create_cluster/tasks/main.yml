@@ -146,11 +146,15 @@
   delegate_to: localhost
   become: no
 
-#TODO: the mirror certificate needs padding (4 spaces) at the begining of each line
 - name: Load patch for install config
   set_fact:
-    patch_install_config: "{{ lookup('template', 'patch-install-config.j2') | from_yaml | to_json(ensure_ascii=False) | string }}"
+    patch_install_config: "{{ lookup('template', 'patch-install-config.j2') | from_yaml }}"
   when: disconnected | bool == True
+
+- name: Add network_type to patch_install_config
+  set_fact:
+    patch_install_config: "{{ lookup('template', 'patch-network-type.j2') | from_yaml | combine(patch_install_config | default({}))  }}"
+  when: network_type is defined
 
 - debug:
     var: patch_install_config
@@ -163,7 +167,7 @@
     status_code: [201]
     return_content: True
     body_format: json
-    body: "{{ patch_install_config | to_json(ensure_ascii=False) | string }}"
+    body: "{{ patch_install_config | to_json(ensure_ascii=False) | string | to_json(ensure_ascii=False) | string }}"
   when: disconnected | bool == True
   register: http_reply
 
@@ -197,4 +201,6 @@
   with_items:
     - 50-worker-nm-fix-ipv6.yml
     - 50-worker-remove-ipi-leftovers.yml
+    - 02-fix-ingress-config.yml
+    - 01-master-node-scheduler.yml
   when: manifests  | bool == True
