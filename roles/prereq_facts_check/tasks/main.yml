@@ -1,4 +1,6 @@
 ---
+
+  
 - name: Check for pull_secret
   assert:
     that:
@@ -19,6 +21,10 @@
     msg: "The required 'ssh_public_key' is not defined or is empty"
   when: ssh_public_check | bool == True
 
+- name: check skopeo is installed
+  debug:
+  shell: /usr/bin/skopeo --version
+  
 - name: Check for mirror_certificate
   assert:
     that:
