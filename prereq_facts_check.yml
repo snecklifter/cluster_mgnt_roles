@@ -4,5 +4,6 @@
   strategy: free
   become: false
   roles:
+    - validate_skopeo
     - prereq_facts_check
 
