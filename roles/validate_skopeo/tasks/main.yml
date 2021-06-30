@@ -1,0 +1,4 @@
+
+- name: Test if skopeo is installed
+  include_tasks:
+    file: check_skopeo.yml
