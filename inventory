@@ -45,7 +45,7 @@ pull_secret="{{ lookup('file', './pull_secret.txt') }}"
 cluster_id="{{ lookup('file', './cluster.txt') }}"
 
 # Version of the openshift-installer, undefined or empty results in the playbook failing.
-openshift_version="4.7"
+openshift_full_version="4.8"
 
 # Discovery ISO
 discovery_iso_name="discovery_image_ldc-griffintown.iso"
