@@ -1,15 +1,11 @@
----
-tasks:
-    - name: check for skopeo
-      package_facts:
-        manager: "auto"
-      
-    - name: skopeo test result
-      debug:
-        msg: "skopeo found"
-      when: "'skopeo' in ansible_facts.packages"
-
-    - name: skopeo test result failure
-      debug:
-        msg: "skopeo not found"
-      when: "'skopeo' not in ansible_facts.packages"
+- name: check for skopeo
+  package_facts:
+    manager: "auto"
+- name: skopeo test result
+  debug:
+    msg: "skopeo is currently installed on your system"
+  when: "'skopeo' in ansible_facts.packages"
+- name: skopeo test result
+  debug:
+    msg: "skopeo not found"
+  when: "'skopeo' not in ansible_facts.packages"
