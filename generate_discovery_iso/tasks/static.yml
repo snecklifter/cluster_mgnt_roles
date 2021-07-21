@@ -29,14 +29,10 @@
         ipv4_config:
           ip: "{{ hostvars[item]['ip2'] }}"
           mask: "{{ hostvars[item]['mask2'] }}"
-          gateway: "{{ hostvars[item]['gateway2'] }}"
-          dns: "{{ hostvars[item]['dns2'] }}"
   when: hostvars[item]['mac2'] is defined and
         hostvars[item]['ip2'] is defined and
         hostvars[item]['ip2'] != 'dhcp' and
-        hostvars[item]['mask2'] is defined and
-        hostvars[item]['gateway2'] is defined and
-        hostvars[item]['dns2'] is defined
+        hostvars[item]['mask2'] is defined
 
 - name: Add {{ item }} secondary ip config
   set_fact:
