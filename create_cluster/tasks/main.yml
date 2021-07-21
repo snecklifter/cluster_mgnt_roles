@@ -197,4 +197,5 @@
   with_items:
     - 50-worker-nm-fix-ipv6.yml
     - 50-worker-remove-ipi-leftovers.yml
+    - 50-master-scheduler.yml
   when: manifests  | bool == True
